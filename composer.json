@@ -1,0 +1,20 @@
+{
+    "name": "exzcute/eztool",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "theeradech dechasit",
+            "email": "notegamer@hotmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Exzcute\\EzTool\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {
+    	"illuminate/support": "~5.0"
+    }
+}
