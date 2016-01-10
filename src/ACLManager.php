@@ -1,16 +1,16 @@
 <?php
 namespace Exzcute\EzTool;
 
-class PermissionEditor
+use Exzcute\EzTool\models\Permission;
+
+class ACLManager
 {
 	public $permissions = [];
 	public $config = [];
 
-	private $config_name = 'eztool.permission';
-
 	public function __construct()
 	{
-		$this->config = config($this->config_name);
+		$this->config = config('eztool.acl');
 		$this->permissions = $this->config['permissions'];
 	}
 
@@ -24,7 +24,7 @@ class PermissionEditor
 	{
 		foreach ($permissions as $key => $value) {
 			$this->permissions[$key] = $value;
-			\Config::set("{$this->config_name}.permissions.$key", $value);
+			\Config::set("eztool.acl.permissions.$key", $value);
 		}
 		return $this->permissions;
 	}
@@ -38,7 +38,7 @@ class PermissionEditor
 	{
 		foreach ($config as $key => $value) {
 			$this->config[$key] = $value;
-			\Config::set("{$this->config_name}.$key", $value);
+			\Config::set("eztool.acl.$key", $value);
 		}
 		return $this->config;
 	}
@@ -46,16 +46,15 @@ class PermissionEditor
 	public function style()
 	{
 		$this->_shareData();
-
-		return view('eztool::permission_editor.style'); 
+		return view('eztool::acl_manager.style'); 
 	}
 
 	public function script()
 	{
 		$this->_shareData();
-
-		return view('eztool::permission_editor.script');
+		return view('eztool::acl_manager.script');
 	}
+
 
 	public function loadStyle()
 	{
@@ -73,7 +72,13 @@ class PermissionEditor
 
 		if(!\Sentinel::hasAccess($this->permissions['view'])) return view('eztool::no_permission');
 
-		return view('eztool::permission_editor.render'); 
+		$roles = \Sentinel::getRoleRepository()->all();
+		$permissions = Permission::whereNull('parent')->orderBy('order')->get();
+
+		return view('eztool::acl_manager.render')
+		->with('roles',$roles)
+		->with('permission_list',$permissions)
+		;
 	}
 
 

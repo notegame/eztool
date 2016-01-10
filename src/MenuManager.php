@@ -1,12 +1,17 @@
 <?php
 namespace Exzcute\EzTool;
 
-class PermissionEditor
+use Exzcute\EzTool\models\Permission;
+use Exzcute\EzTool\models\Menu;
+
+class MenuManager
 {
 	public $permissions = [];
 	public $config = [];
+	public $active = null;
+	public $actives = [];
 
-	private $config_name = 'eztool.permission';
+	private $config_name = 'eztool.menu';
 
 	public function __construct()
 	{
@@ -47,14 +52,17 @@ class PermissionEditor
 	{
 		$this->_shareData();
 
-		return view('eztool::permission_editor.style'); 
+		return view('eztool::menu_manager.style'); 
 	}
 
 	public function script()
 	{
 		$this->_shareData();
 
-		return view('eztool::permission_editor.script');
+		$permission_list = Permission::getList();
+
+		return view('eztool::menu_manager.script')
+		->with('permission_list',$permission_list);
 	}
 
 	public function loadStyle()
@@ -67,13 +75,53 @@ class PermissionEditor
 		return '<script src="'.url($this->config['script_url']).'"></script>';
 	}
 
+	public function get()
+	{
+		return Menu::whereNull('parent')->orderBy('order')->get();
+	}
+
+	public function setActive($name)
+	{
+		$this->active = $name;
+		return $name;
+	}
+
+	public function getActive($parent_id=null)
+	{
+		if($parent_id==null)
+		{
+			$menu = Menu::whereName($this->active)->first();
+		}else{
+			$menu = Menu::find($parent_id);
+		}
+		
+		if($menu){
+			$this->actives[] = $menu->name;
+			if($menu->parent!=null){
+				self::getActive($menu->parent);
+			}
+		}
+
+		return $this->actives;
+	}
+
+	public function isActive($name)
+	{
+		if(!$this->actives)
+		{
+			self::getActive();
+		}
+
+		return in_array($name,$this->actives);
+	}
+
 	public function render()
 	{
 		$this->_shareData();
 
 		if(!\Sentinel::hasAccess($this->permissions['view'])) return view('eztool::no_permission');
 
-		return view('eztool::permission_editor.render'); 
+		return view('eztool::menu_manager.render'); 
 	}
 
 

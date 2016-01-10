@@ -1,0 +1,1 @@
+<div class="ez-no-permission">no permissions to access</div>

@@ -1,8 +1,11 @@
 <div ng-app="permissionEditorApp">
     <div id="permission_editor" class="dd permission-editor" ng-controller="permissionEditorController as permEditor">
+
+        @if(\Sentinel::hasAccess($permissions['create']))
         <div class="text-right">
             <a href="#modal-create-permission" class="btn btn-primary" data-toggle="modal"><i class="fa fa-plus"></i> Create</a>
         </div>
+        @endif
 
         <ol class="dd-list">
             <li class="dd-item list-close permission-editor__list" data-id="{(permission.id)}" permission-list ng-repeat="permission in permEditor.permissions"></li>
@@ -44,26 +47,32 @@
         <div class="pull-left">{(permission.name)}</div>
     </div>
     <a href="javascript:void(0);" class="btn btn-info btn-sm permission-editor__list__btn--collapse" ng-click="permEditor.collapse(permission,$event)" style="top: 0px;position: absolute;right: 6px;padding: 0px 4px;margin-top: 4px;"><i class="fa fa-chevron-down"></i></a>
+    
     <div class="permission-editor__list__content">
         <div class="row">
             <div class="col-md-12">
                 <form class="form" onsubmit="return false;">
                     <div class="form-group">
                         <label for="permission_name_{(permission.id)}">Name</label>
-                        <input type="text" id="permission_name_{(permission.id)}" ng-model="permission.name" class="form-control">
+                        <input type="text" id="permission_name_{(permission.id)}" {{!\Sentinel::hasAccess($permissions['update']) ? 'readonly' : ''}} ng-model="permission.name" class="form-control">
                     </div>
                     <div class="form-group">
                         <label for="permission_desc_{(permission.id)}">Description</label>
-                        <input type="text" id="permission_desc_{(permission.id)}" ng-model="permission.desc" class="form-control">
+                        <input type="text" id="permission_desc_{(permission.id)}" {{!\Sentinel::hasAccess($permissions['update']) ? 'readonly' : ''}} ng-model="permission.desc" class="form-control">
                     </div>
                     <div class="form-group text-right">
+                        @if(\Sentinel::hasAccess($permissions['update']))
                         <button type="button" class="btn btn-effect-ripple btn-primary" ng-click="permEditor.save(permission,$event)">Save</button>
+                        @endif
+                        @if(\Sentinel::hasAccess($permissions['delete']))
                         <button type="button" class="btn btn-effect-ripple btn-danger" ng-click="permEditor.delete(permission,$event)">Delete</button>
+                        @endif
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    
     <ol class="dd-list" ng-if="permission.childs.length>0">
         <li class="dd-item list-close permission-editor__list" data-id="{(permission.id)}" permission-list ng-repeat="permission in permission.childs"></li>
     </ol>

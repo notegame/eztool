@@ -1,22 +1,32 @@
-angular.module('permissionEditorApp', [], function($interpolateProvider) {
+angular.module('menuManagerApp', [], function($interpolateProvider) {
 	$interpolateProvider.startSymbol('{(');
     $interpolateProvider.endSymbol(')}');
 })
-.directive('permissionList', function($document, $templateCache) {
+.directive('menuList', function($document, $templateCache) {
 	return {
-    	template: $('script[id="permission_list.html"]').html()
+    	template: $('script[id="menu_list.html"]').html()
   	};
 })
-.controller('permissionEditorController', function($scope) {
+.directive('onPostRepeatDirective', function($timeout) {
+  return function(scope, element, attrs) {
+    if (scope.$last){
+    	$timeout(function() { 
+      		$('.select-chosen').chosen({width: "100%"});
+      	});
+    }
+  };
+})
+.controller('menuManagerController', function($scope) {
 
 	//Declare
 	var _this = this;
 	
-	_this.permission_editor = $('#permission_editor');
-	_this.permission_create_modal = $('#modal-create-permission');
+	_this.permission_editor = $('#menu_manager');
+	_this.permission_create_modal = $('#modal-create-menu');
 
 	_this.create = {};
-	_this.permissions = {};
+	_this.menus = {};
+	_this.permissions = {!!json_encode($permission_list)!!};
 	_this.lists = [];
 
 	//get List Recursive
@@ -36,6 +46,7 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
 		});
 	}
 
+	@if(\Sentinel::hasAccess($permissions['update']))
 	//run jquery nestable
 	_this.permission_editor
 	    .nestable({
@@ -51,16 +62,20 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
 
 	        _this.getChilds(list.nestable('serialize'));
 
-	        $.ajax({
-	        	url: '{{$config['url']['update_order']}}',
-	        	type: 'PUT',
-	        	data: {lists : _this.lists, _token : "{{csrf_token()}}"},
-	        })
-	        .done(function() {
-	        	
-	        })
+	        if(list.attr('id')=="menu_manager")
+	        {
+		        $.ajax({
+		        	url: '{{$config['url']['update_order']}}',
+		        	type: 'PUT',
+		        	data: {lists : _this.lists, _token : "{{csrf_token()}}"},
+		        })
+		        .done(function() {
+		        	
+		        })
+		    }
 	        
 	    });
+	@endif
 
 	//get data from ajax
 	_this.loadData = function() {
@@ -69,8 +84,7 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
 			type: 'GET',
 		})
 		.done(function(data) {
-			console.log(data);
-			_this.permissions = data;
+			_this.menus = data;
 			$scope.$apply();
 		});
 	}
@@ -92,10 +106,14 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
 			data: _this.create
 		})
 		.done(function(data) {
-			_this.permissions.push(data);
+			_this.menus.push(data);
 			_this.create = {};
 		})
+		.fail(function(data) {
+			bootbox.alert(data.responseJSON.msg);
+		})
 		.always(function() {
+			$('#create_permissions').val('').trigger('chosen:updated');
 			_this.permission_create_modal.modal('hide');
 			$(parent).waitMe('hide');
 			_this.loadData();
@@ -128,6 +146,9 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
 		.done(function(data) {
 			console.log(data);
 		})
+		.fail(function(data) {
+			bootbox.alert(data.responseJSON.msg);
+		})
 		.always(function() {
 			$(parent).waitMe('hide');
 		});
@@ -156,6 +177,9 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
 			.done(function(data) {
 				console.log(data);
 			})
+			.fail(function(data) {
+				bootbox.alert(data.responseJSON.msg);
+			})
 			.always(function() {
 				_this.loadData();
 				$(parent).waitMe('hide');
@@ -173,18 +197,17 @@ angular.module('permissionEditorApp', [], function($interpolateProvider) {
             parent.removeClass('list-close');
             parent.addClass('list-open');
 
-            var content = parent.find('.permission-editor__list__content');
+            var content = parent.find('.menu-manager__list__content');
 
             $(content[0]).slideDown('fast');
         }else{
            
-           	var content = parent.find('.permission-editor__list__content');
+           	var content = parent.find('.menu-manager__list__content');
 
             $(content[0]).slideUp('fast',function() {
                 parent.addClass('list-close');
                 parent.removeClass('list-open');
             });
         }
-
 	}
 });

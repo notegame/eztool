@@ -14,17 +14,6 @@ class EzToolServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
-        $this->app->bind('eztool', function ($app)
-        {
-            return new EzTool;
-        });
-
-        $this->app->bind('permission_editor', function ($app)
-        {
-            return new PermissionEditor;
-        });
-
         $this->loadViewsFrom(__DIR__.'/views', 'eztool');
 
         if (! $this->app->routesAreCached()) {
@@ -45,6 +34,24 @@ class EzToolServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind('eztool', function ($app)
+        {
+            return new EzTool;
+        });
+
+        $this->app->bind('permission_editor', function ($app)
+        {
+            return new PermissionEditor;
+        });
+
+        $this->app->bind('acl_manager', function ($app)
+        {
+            return new ACLManager;
+        });
+
+        $this->app->bind('menu_manager', function ($app)
+        {
+            return new MenuManager;
+        });
     }
 }
